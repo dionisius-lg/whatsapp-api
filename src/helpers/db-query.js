@@ -126,7 +126,7 @@ exports.countData = ({
             let joinQuery = _.join(join, ' ');
             query += ` ${joinQuery}`;
         }
-        
+
         if (!isEmpty(conditions)) {
             for (let key in conditions) {
                 if (!isEmpty(conditionTypes)) {
@@ -139,7 +139,7 @@ exports.countData = ({
                         setCond.push(`${table}.${key} LIKE ${escape(keyLike)}`);
                     } else {
                         let isArray = conditions[key].constructor === Array;
-                        
+
                         if (isArray) {
                             setCond.push(`${table}.${key} IN (${escape(conditions[key])})`);
                         } else {
@@ -148,7 +148,7 @@ exports.countData = ({
                     }
                 } else {
                     let isArray = conditions[key].constructor === Array;
-                        
+
                     if (isArray) {
                         setCond.push(`${table}.${key} IN (${escape(conditions[key])})`);
                     } else {
@@ -156,11 +156,11 @@ exports.countData = ({
                     }
                 }
             }
-            
+
             queryCond = _.join(setCond, ' AND ');
             query += ` WHERE ${queryCond}`;
         }
-        
+
         if (!isEmpty(attributeColumn)) {
             // for custom attributes
             let queryLine;
@@ -177,7 +177,7 @@ exports.countData = ({
                 }
 
                 queryCond = _.join(setCustomCond, ' AND ');
-                
+
                 if (!isEmpty(conditions)) {
                     query += ` AND ${queryCond}`;
                 } else {
@@ -232,7 +232,7 @@ exports.countData = ({
                 }
 
                 const { count } = result[0];
-            
+
                 return resolve(count || 0);
             });
         });
@@ -367,7 +367,7 @@ exports.getAll = async ({
 
         // remove invalid column from conditions
         conditions = requestHelper.filterColumn(conditions, masterColumns);
-        
+
         if (!isEmpty(conditions)) {
             for (let key in conditions) {
                 if (!isEmpty(conditionTypes)) {
@@ -389,7 +389,7 @@ exports.getAll = async ({
                     }
                 } else {
                     let isArray = conditions[key].constructor === Array;
-                        
+
                     if (isArray) {
                         setCond.push(`${table}.${key} IN (${escape(conditions[key])})`);
                     } else {
@@ -398,7 +398,7 @@ exports.getAll = async ({
                 }
             }
         }
-        
+
         if (!isEmpty(attributeColumn)) {
             // for custom attributes
             let queryLine;
@@ -428,7 +428,7 @@ exports.getAll = async ({
 
             query += `${queryCond}`;
         }
-        
+
         if (!isEmpty(groupBy) && _.isArrayLikeObject(groupBy)) {
             let columnGroup = _.join(groupBy, ', ');
             query += ` GROUP BY ${columnGroup}`;
@@ -581,7 +581,7 @@ exports.getDetail = async ({
         if (!isEmpty(customFields)) {
             let customField = '';
             let setCustomField = [];
-            
+
             for (let key in customFields) {
                 if (_.indexOf(customDropdownFields, customFields[key]) >= 0) {
                     setCustomField.push(`CONCAT_WS('||', JSON_UNQUOTE(JSON_EXTRACT(${table}.${attributeColumn}, '$.${customFields[key]}.id')), JSON_UNQUOTE(JSON_EXTRACT(${table}.${attributeColumn}, '$.${customFields[key]}.value'))) AS ${customFields[key]}`);
@@ -694,7 +694,7 @@ exports.getDetail = async ({
                             page: 1,
                             data: result[0]
                         };
-						
+
                         if (cache.service === 1 && table != '' && cacheTableExceptions.indexOf(table) < 0) {
                             const key = cacheKey || table;
                             const keyId = (conditions['id']) ? `:${conditions['id']}` : '';
@@ -741,7 +741,7 @@ exports.insertData = async ({
         let getCustomFields;
         let customDropdownFields;
         let customFields = [];
-        
+
         if (!isEmpty(attributeColumn)) {
             getCustomFields = await this.checkCustomField({ table, cc });
             customFields = _.map(getCustomFields, 'field_key');
@@ -1203,34 +1203,34 @@ exports.updateData = async ({
                     return resolve(res);
                 }
             }
-	
+
             if (!isEmpty(data)) {
                 const keys = Object.keys(data);
                 // check protected columns on submitted data
                 const forbiddenColumns = _.intersection(protectedColumns, keys);
-	
+
                 if (!isEmpty(forbiddenColumns)) {
                     return resolve(res);
                 }
-				
+
                 delete data[attributeColumn];
-	
+
                 for (let key in data) {
                     let dataVal = _.trim(data[key]);
-					
+
                     if (typeof data[key] !== 'undefined') {
                         if (_.indexOf(timeChar, _.toUpper(dataVal)) >= 0) {
                             let d = new Date();
                             dataVal = dateFormat(d, 'yyyy-mm-dd HH:MM:ss');
                         }
-	
+
                         if (_.indexOf(nullChar, _.toUpper(dataVal)) >= 0) {
                             dataVal = null;
                         }
                     } else {
                         dataVal = null;
                     }
-	
+
                     if (_.isEmpty(dataVal) && dataVal !== 0) {
                         setData.push(`${key} = NULL`);
                     } else {
@@ -1238,17 +1238,17 @@ exports.updateData = async ({
                     }
                 }
             }
-	
+
             if (!isEmpty(attributeColumn)) {
                 let setJsonData = [];
-				
+
                 for (let key in dataCustom) {
                     if (customFields.indexOf(key) >= 0) {
                         if (customDropdownFields.indexOf(key) >= 0) {
                             let dropdownData = dataCustom[key].split('||');
                             let dropdownId = dropdownData[0] || '';
                             let dropdownValue = dropdownData[1] || '';
-	
+
                             if ((!isNaN(dropdownId) || _.isNumber(dropdownId)) && dropdownId > 0 && !isEmpty(dropdownValue)) {
                                 setJsonData.push(`'$.${key}', JSON_OBJECT('id', ${escape(_.parseInt(dropdownId))}, 'value', ${escape(dropdownValue)})`);
                             } else {
@@ -1259,17 +1259,17 @@ exports.updateData = async ({
                         }
                     }
                 }
-	
+
                 let joinData = _.join(setJsonData, ', ');
-	
+
                 if (!isEmpty(joinData)) {
                     setData.push(`${attributeColumn} = JSON_SET(COALESCE(${attributeColumn}, '{}'), ${joinData})`);
                 }
             }
-	
+
             queryData = _.join(setData, ', ');
             query += ` SET ${queryData}`;
-	
+
             if (!isEmpty(conditions)) {
                 for (let key in conditions) {
                     if (_.isArray(conditions[key])) {
@@ -1279,7 +1279,7 @@ exports.updateData = async ({
                     }
                 }
             }
-	
+
             if (!isEmpty(attributeColumn)) {
                 // for custom attributes
                 for (let key in customAttribute) {
@@ -1289,17 +1289,17 @@ exports.updateData = async ({
                     }
                 }
             }
-			
+
             queryCond = _.join(setCond, ' AND ');
             query += ` WHERE ${queryCond}`;
-			
+
             if (!isEmpty(customConditions) && _.isArrayLikeObject(customConditions)) {
                 queryCond = ' WHERE ' + _.join(customConditions, ' AND ');
-	
+
                 if (!isEmpty(conditions)) {
                     queryCond = ' AND ' + _.join(customConditions, ' AND ');
                 }
-	
+
                 query += `${queryCond}`;
             }
 
@@ -1324,7 +1324,7 @@ exports.updateData = async ({
                             // Check if the error is a deadlock error
                             if ((err.code === 'ER_LOCK_DEADLOCK' || err.code === 'ER_LOCK_WAIT_TIMEOUT' || err.code === 'ER_LOCK_TIMEOUT') && retryCount < dbOptions.retry_attempt) {
                                 console.error(`Deadlock detected. Retrying (${retryCount + 1}/${dbOptions.retry_attempt})...`);
-        
+
                                 // Add a delay before retrying
                                 setTimeout(() => {
                                     executeUpdateQuery(retryCount + 1);
@@ -1343,35 +1343,35 @@ exports.updateData = async ({
                         if (cache.service === 1) {
                             const keyData = `${table}:all`;
                             const keyId = conditions['id'] || '';
-            
+
                             if (Array.isArray(cacheKeys) && !isEmpty(cacheKeys)) {
                                 cacheKeys.push(keyData);
-            
+
                                 if (keyId) {
                                     cacheKeys.push(`${table}:${keyId}`);
                                 }
-            
+
                                 cacheHelper.deleteDataQuery({ key: cacheKeys });
                             } else {
                                 const keyToDelete = [keyData];
-            
+
                                 if (keyId) {
                                     keyToDelete.push(`${table}:${keyId}`);
                                 }
-            
+
                                 cacheHelper.deleteDataQuery({ key: keyToDelete });
                             }
                         }
-            
+
                         res = {
                             total_data: result.affectedRows,
                             data: conditions
                         };
-            
+
                         if (res.total_data < 1 || result.warningCount) {
                             res.data = false;
                         }
-            
+
                         resolve(res);
                     });
                 });
@@ -1421,19 +1421,19 @@ exports.updateManyData = async ({
             if (!isEmpty(diff)) {
                 return resolve(res);
             }
-	
+
             // remove invalid data
             data[0] = requestHelper.filterData(data[0]);
             const keys = Object.keys(data[0]);
-	
+
             // if key data empty
             if (_.isEmpty(keys)) {
                 return resolve(res);
             }
-	
+
             // check protected columns on submitted data
             const forbiddenColumns = _.intersection(protectedColumns, keys);
-	
+
             if (!isEmpty(forbiddenColumns)) {
                 idColumns.forEach(column => {
                     if (!forbiddenColumns.includes(column)) {
@@ -1441,34 +1441,34 @@ exports.updateManyData = async ({
                     }
                 });
             }
-			
+
             const updateColumns = Object.keys(data[0]).filter(key => !idColumns.includes(key));
             let query = `UPDATE ${table} SET`;
             updateColumns.forEach((column, index) => {
                 query += ` ${column} = CASE`;
-				  
+
                 data.forEach(item => {
                     let colValue = _.trim(item[column]);
-	
+
                     if (_.indexOf(timeChar, _.toUpper(colValue)) >= 0) {
                         let d = new Date();
                         colValue = dateFormat(d, 'yyyy-mm-dd HH:MM:ss');
                     }
-	
+
                     if (_.indexOf(nullChar, _.toUpper(colValue)) >= 0) {
                         colValue = null;
                     }
-					
+
                     let condition = idColumns.map(idCol => `${idCol} = ${item[idCol]}`).join(' AND ');
                     query += ` WHEN ${condition} THEN ${item[column]}`;
                 });
-				
+
                 query += (updateColumns[updateColumns.length - 1] != column) ? ' END,' : ' END';
             });
 
             const dbOptions = parseInt(cc, 10) !== 1 ? database.options : database_cc.options;
             const dbPool = parseInt(cc, 10) !== 1 ? pool : poolCc;
-			
+
             const executeUpdateQuery = (retryCount) => {
                 dbPool.getConnection((err, conn) => {
                     if (err) {
@@ -1483,16 +1483,16 @@ exports.updateManyData = async ({
                         if (err) {
                             console.error('Error pool query:', err);
                             timeoutSeconds = Math.floor(Math.random() * (dbOptions.max_timeout - dbOptions.min_timeout + 1) + dbOptions.min_timeout) * 1000; //set timeout randomly
-						
+
                             // Check if the error is a deadlock error
                             if ((err.code === 'ER_LOCK_DEADLOCK' || err.code === 'ER_LOCK_WAIT_TIMEOUT' || err.code === 'ER_LOCK_TIMEOUT') && retryCount < dbOptions.retry_attempt) {
                                 console.error(`Deadlock detected. Retrying (${retryCount + 1}/${dbOptions.retry_attempt})...`);
-	
+
                                 // Add a delay before retrying
                                 setTimeout(() => {
                                     executeUpdateQuery(retryCount + 1);
                                 }, timeoutSeconds);
-							
+
                                 return;
                             } else {
                                 return resolve(res);
@@ -1511,21 +1511,21 @@ exports.updateManyData = async ({
                                 cacheHelper.deleteData({ key: [table] });
                             }
                         }
-	
+
                         res = {
                             total_data: result.affectedRows,
                             data: data
                         };
-		
+
                         if (res.total_data < 1 || result.warningCount) {
                             res.data = false;
                         }
-					
+
                         resolve(res);
                     });
                 });
             };
-	
+
             // Start the initial execution
             executeUpdateQuery(0);
         });
