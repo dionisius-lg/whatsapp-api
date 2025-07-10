@@ -463,7 +463,7 @@ exports.getAll = async ({
             }
         }
         
-        let countData = await this.countData({ table, conditions, conditionTypes, customConditions, customAttribute, customFields, customDropdownFields, attributeColumn, join, groupBy, having });
+        let countData = await this.countData({ table, conditions, conditionTypes, customConditions, customAttribute, customFields, customDropdownFields, attributeColumn, join, groupBy, having, cc });
         let getCache = 0;
 
         if (cache.service === 1 && cacheTableExceptions.indexOf(table) < 0) {
@@ -1188,7 +1188,7 @@ exports.updateData = async ({
         let customDropdownFields;
 
         if (!isEmpty(attributeColumn)) {
-            getCustomFields = await this.checkCustomField({ table });
+            getCustomFields = await this.checkCustomField({ table, cc });
             customFields = _.map(getCustomFields, 'field_key');
             const getDropdownColumn = _.filter(getCustomFields, { field_type_id: 5 });
             customDropdownFields = _.map(getDropdownColumn, 'field_key');
