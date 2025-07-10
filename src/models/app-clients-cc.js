@@ -6,6 +6,8 @@ exports.getAll = async (conditions) => {
         'like': ['name']
     };
 
+    let customConditions = [];
+
     if (conditions?.user_id && conditions.user_id === 'NOT NULL') {
         customConditions.push(`${table}.user_id IS NOT NULL AND user_id <> 0`);
         delete conditions.user_id;
