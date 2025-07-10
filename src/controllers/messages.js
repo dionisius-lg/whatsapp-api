@@ -50,13 +50,6 @@ exports.sendContact = async (req, res) => {
 
         if (!isEmpty(contacts)) {
             if (bsp === 'JSM') {
-                for (let i in buttons) {
-                    if (buttons[i].type === 'PHONE_NUMBER' && buttons[i]?.country_code) {
-                        buttons[i].phone_number = `${buttons[i].country_code}${buttons[i].phone_number}`;
-                        delete buttons[i].country_code;
-                    }
-                }
-
                 const modifiedContacts = contacts.reduce((acc, row) => {
                     const { name: { formatted_name } } = row;
                     row.name.first_name = (formatted_name).split(' ')[0];
@@ -96,13 +89,14 @@ exports.sendContact = async (req, res) => {
             wa_message_id
         });
 
-        const ticket = ticketModel.getDetail({
-            contacts: wa_id,
+        const tickets = ticketModel.getAll({
+            contact: wa_id,
             media_id: 4,
-            sort: desc
+            limit: 1,
+            sort: 'desc'
         });
 
-        if (ticket.total_data > 0) {
+        if (tickets.total_data > 0) {
             const insertWhatsapp = await whatsappsModel.insertData({
                 ...whatsappData,
                 waba_message_id: wa_message_id
@@ -110,7 +104,7 @@ exports.sendContact = async (req, res) => {
 
             if (insertWhatsapp.total_data > 0) {
                 await ticketMediasModel.insertData({
-                    ticket_id: ticket.data.id,
+                    ticket_id: tickets[0].data.id,
                     media_id: 4,
                     direction_id: 2,
                     record_id: insertWhatsapp.data.id
@@ -204,13 +198,14 @@ exports.sendLocation = async (req, res) => {
             wa_message_id
         });
 
-        const ticket = ticketModel.getDetail({
-            contacts: wa_id,
+        const tickets = ticketModel.getAll({
+            contact: wa_id,
             media_id: 4,
-            sort: desc
+            limit: 1,
+            sort: 'desc'
         });
 
-        if (ticket.total_data > 0) {
+        if (tickets.total_data > 0) {
             const insertWhatsapp = await whatsappsModel.insertData({
                 ...whatsappData,
                 waba_message_id: wa_message_id
@@ -218,7 +213,7 @@ exports.sendLocation = async (req, res) => {
 
             if (insertWhatsapp.total_data > 0) {
                 await ticketMediasModel.insertData({
-                    ticket_id: ticket.data.id,
+                    ticket_id: tickets[0].data.id,
                     media_id: 4,
                     direction_id: 2,
                     record_id: insertWhatsapp.data.id
@@ -304,13 +299,14 @@ exports.sendMedia = async (req, res) => {
             wa_message_id
         });
 
-        const ticket = ticketModel.getDetail({
-            contacts: wa_id,
+        const tickets = ticketModel.getAll({
+            contact: wa_id,
             media_id: 4,
-            sort: desc
+            limit: 1,
+            sort: 'desc'
         });
 
-        if (ticket.total_data > 0) {
+        if (tickets.total_data > 0) {
             const insertWhatsapp = await whatsappsModel.insertData({
                 ...whatsappData,
                 waba_message_id: wa_message_id
@@ -318,7 +314,7 @@ exports.sendMedia = async (req, res) => {
 
             if (insertWhatsapp.total_data > 0) {
                 await ticketMediasModel.insertData({
-                    ticket_id: ticket.data.id,
+                    ticket_id: tickets[0].data.id,
                     media_id: 4,
                     direction_id: 2,
                     record_id: insertWhatsapp.data.id
@@ -437,13 +433,14 @@ exports.sendReplyButton = async (req, res) => {
             wa_message_id
         });
 
-        const ticket = ticketModel.getDetail({
-            contacts: wa_id,
+        const tickets = ticketModel.getAll({
+            contact: wa_id,
             media_id: 4,
-            sort: desc
+            limit: 1,
+            sort: 'desc'
         });
 
-        if (ticket.total_data > 0) {
+        if (tickets.total_data > 0) {
             const insertWhatsapp = await whatsappsModel.insertData({
                 ...whatsappData,
                 waba_message_id: wa_message_id
@@ -451,7 +448,7 @@ exports.sendReplyButton = async (req, res) => {
 
             if (insertWhatsapp.total_data > 0) {
                 await ticketMediasModel.insertData({
-                    ticket_id: ticket.data.id,
+                    ticket_id: tickets[0].data.id,
                     media_id: 4,
                     direction_id: 2,
                     record_id: insertWhatsapp.data.id
@@ -548,13 +545,14 @@ exports.sendReplyList = async (req, res) => {
             wa_message_id
         });
 
-        const ticket = ticketModel.getDetail({
-            contacts: wa_id,
+        const tickets = ticketModel.getAll({
+            contact: wa_id,
             media_id: 4,
-            sort: desc
+            limit: 1,
+            sort: 'desc'
         });
 
-        if (ticket.total_data > 0) {
+        if (tickets.total_data > 0) {
             const insertWhatsapp = await whatsappsModel.insertData({
                 ...whatsappData,
                 waba_message_id: wa_message_id
@@ -562,7 +560,7 @@ exports.sendReplyList = async (req, res) => {
 
             if (insertWhatsapp.total_data > 0) {
                 await ticketMediasModel.insertData({
-                    ticket_id: ticket.data.id,
+                    ticket_id: tickets[0].data.id,
                     media_id: 4,
                     direction_id: 2,
                     record_id: insertWhatsapp.data.id
@@ -816,13 +814,14 @@ exports.sendText = async (req, res) => {
             wa_message_id
         });
 
-        const ticket = ticketModel.getDetail({
-            contacts: wa_id,
+        const tickets = ticketModel.getAll({
+            contact: wa_id,
             media_id: 4,
-            sort: desc
+            limit: 1,
+            sort: 'desc'
         });
 
-        if (ticket.total_data > 0) {
+        if (tickets.total_data > 0) {
             const insertWhatsapp = await whatsappsModel.insertData({
                 ...whatsappData,
                 waba_message_id: wa_message_id
@@ -830,7 +829,7 @@ exports.sendText = async (req, res) => {
 
             if (insertWhatsapp.total_data > 0) {
                 await ticketMediasModel.insertData({
-                    ticket_id: ticket.data.id,
+                    ticket_id: tickets[0].data.id,
                     media_id: 4,
                     direction_id: 2,
                     record_id: insertWhatsapp.data.id
