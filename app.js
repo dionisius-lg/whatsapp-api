@@ -7,7 +7,7 @@ const logger = require('./src/helpers/logger');
 const responseHelper = require('./src/helpers/response');
 const scheduleTask = require('./src/helpers/schedule-task');
 
-const { env, port } = config;
+const { env, port, schedule } = config;
 const { sendBadRequest } = responseHelper;
 const app = express();
 
@@ -46,44 +46,47 @@ app.listen(port, '0.0.0.0', (err) => {
     console.log(`[server] is running for ${env} environtment | port ${port}`);
 });
 
-// running schedule task every 2 minutes
+// flag for resend failed message inbound
 let isResendFailedMesssageInbound = false;
-cron.schedule('*/2 * * * *', async () => {
-    if (isResendFailedMesssageInbound) {
-        console.log('[schedule-task] resend failed message inbound to webhook is still running...');
-
-        return false;
-    }
-
-    isResendFailedMesssageInbound = true;
-    await scheduleTask.resendFailedMesssageInbound();
-    isResendFailedMesssageInbound = false;
-});
-
-// running schedule task every 5 minutes
+// flag for resend failed message notification
 let isResendFailedMesssageNotif = false;
-cron.schedule('*/5 * * * *', async () => {
-    if (isResendFailedMesssageNotif) {
-        console.log('[schedule-task] resend failed message notification to webhook is still running...');
-
-        return false;
-    }
-
-    isResendFailedMesssageNotif = true;
-    await scheduleTask.resendFailedMesssageNotif();
-    isResendFailedMesssageNotif = false;
-});
-
-// running schedule task every 15 minutes
+// flag for update template status
 let isUpdateTemplateStatus = false;
-cron.schedule('*/15 * * * *', async () => {
-    if (isUpdateTemplateStatus) {
-        console.log('[schedule-task] update template status from whatsapp is still running...');
 
-        return false;
-    }
+if (schedule.service === 1) {
+    cron.schedule(schedule.cron_resend_failed_inbound, async () => {
+        if (isResendFailedMesssageInbound) {
+            console.log('[schedule-task] resend failed message inbound to webhook is still running...');
 
-    isUpdateTemplateStatus = true;
-    await scheduleTask.updateTemplateStatus();
-    isUpdateTemplateStatus = false;
-});
+            return false;
+        }
+
+        isResendFailedMesssageInbound = true;
+        await scheduleTask.resendFailedMesssageInbound();
+        isResendFailedMesssageInbound = false;
+    });
+
+    cron.schedule(schedule.cron_resend_failed_notification, async () => {
+        if (isResendFailedMesssageNotif) {
+            console.log('[schedule-task] resend failed message notification to webhook is still running...');
+
+            return false;
+        }
+
+        isResendFailedMesssageNotif = true;
+        await scheduleTask.resendFailedMesssageNotif();
+        isResendFailedMesssageNotif = false;
+    });
+
+    cron.schedule(schedule.cron_update_template_status, async () => {
+        if (isUpdateTemplateStatus) {
+            console.log('[schedule-task] update template status from whatsapp is still running...');
+
+            return false;
+        }
+
+        isUpdateTemplateStatus = true;
+        await scheduleTask.updateTemplateStatus();
+        isUpdateTemplateStatus = false;
+    });
+}

@@ -732,7 +732,7 @@ exports.insertData = async ({
         let timeChar = ['CURRENT_TIMESTAMP()', 'NOW()'];
         let nullChar = ['NULL', ''];
         let dataCustom = { ...data };
-        const columns = await this.checkCustomField({ table, cc });
+        const columns = await this.checkColumn({ table, cc });
         // remove invalid column from data
         data = requestHelper.filterColumn(data, columns);
         // remove invalid data
@@ -888,7 +888,7 @@ exports.insertManyData = async ({
         let nullChar = ['NULL'];
 
         // get table columns
-        const columns = await this.checkCustomField({ table, cc });
+        const columns = await this.checkColumn({ table, cc });
         // compare fields from data with columns
         const diff = _.difference(data[0], columns);
 

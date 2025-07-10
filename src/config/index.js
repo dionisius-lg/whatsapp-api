@@ -43,6 +43,12 @@ const config = {
         key: process.env.WA_API_KEY || '',
         bsp: (typeof process.env.WA_API_BSP === 'string' && ['JSM', 'IVO'].includes(process.env.WA_API_BSP.trim())) ? process.env.WA_API_BSP.trim() : 'JSM'
     },
+    schedule: {
+        service: parseInt(process.env.SCHEDULE_SERVICE || '0'),
+        cron_resend_failed_inbound: (process.env.SCHEDULE_CRON_RESEND_FAILED_INBOUND || '*/2 * * * *'),
+        cron_resend_failed_notification: (process.env.SCHEDULE_CRON_RESEND_FAILED_NOTIFICATION || '*/5 * * * *'),
+        cron_update_template_status: (process.env.SCHEDULE_CRON_UPDATE_TEMPLATE_STATUS || '*/10 * * * *'),
+    },
     file_dir: process.env.FILE_DIR || '/',
     secret: process.env.SECRET_KEY || 'secret'
 };
