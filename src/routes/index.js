@@ -31,7 +31,7 @@ const unlessPath = (pathArr = [], middleware) => {
 };
 
 router.get('/', (req, res) => {
-    return res.send({ app: 'Whatsapp Gateway API' });
+    return res.send({ app: 'Whatsapp API' });
 });
 
 // require x-api-key header

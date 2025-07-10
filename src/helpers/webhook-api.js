@@ -41,6 +41,8 @@ const send = async ({ clients = [], body = {} }) => {
                                 response: value?.data || null
                             }
                         });
+
+                        result.success += 1;
                         break;
                     default:
                         let { reason } = res;

@@ -1,6 +1,10 @@
 const router = require('express').Router();
 const controller = require('./../controllers/webhooks');
 
+router.get('/', (req, res) => {
+    return res.send({ app: 'Whatsapp API Webhook' });
+});
+
 router.post('/', async (req, res) => {
     const { body } = req;
 
