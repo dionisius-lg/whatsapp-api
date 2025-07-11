@@ -9,6 +9,7 @@ const messagesModel = require('./../models/messages');
 const ticketMediasModel = require('./../models/ticket-medias-cc');
 const ticketModel = require('./../models/tickets-cc');
 const whatsappBroadcastsModel = require('./../models/whatsap-broadcasts-cc');
+const whatsappCardsModel = require('./../models/whatsapp-cards-cc');
 const whatsappTemplatesModel = require('./../models/whatsapp-templates-cc');
 const whatsappsModel = require('./../models/whatsapps-cc');
 
@@ -642,11 +643,13 @@ exports.sendTemplate = async (req, res) => {
         });
 
         if (whatsappTemplate.total_data > 0) {
+            const templateData = whatsappTemplate.data;
+
             let whatsappBroadcastData = {
-                wa_template_id: whatsappTemplate.data.id,
+                wa_template_id: templateData.id,
                 waba_template_id: template_id,
                 wa_import_id: 0,
-                content: JSON.stringify(content),
+                content: JSON.stringify(body),
                 field: `${wa_id}`,
                 media_status_id: 11,
                 wa_id,
@@ -655,79 +658,130 @@ exports.sendTemplate = async (req, res) => {
             };
 
             let contentBody = {};
+            const requestComponents = body.components || [];
 
-            if (!isEmpty(whatsappTemplate.data.header_format) && !isEmpty(whatsappTemplate.data.header_body)) {
-                let whatsappTemplateDataHeader = {
-                    type: (whatsappTemplate.data.header_format?.toString() || '').toLowerCase()
-                };
+            if (!isEmpty(templateData.header_format) && !isEmpty(requestComponents)) {
+                const parameterHeader = requestComponents.find((row) => row.type === 'header')?.parameters?.[0];
 
-                switch (true) {
-                    case ['document', 'image', 'video'].includes(whatsappTemplateDataHeader.type):
-                        whatsappTemplateDataHeader[whatsappTemplateDataHeader.type] = {
-                            link: whatsappTemplate.data.header_body
-                        };
+                if (!isEmpty(parameterHeader)) {
+                    let templateDataheader = {
+                        type: (parameterHeader.type?.toString() || '').toLowerCase()
+                    };
 
-                        if (whatsappTemplateDataHeader.type === 'document') {
-                            whatsappTemplateDataHeader[whatsappTemplateDataHeader.type].filename = whatsappTemplate.data.file_name;
-                        }
+                    switch (true) {
+                        case ['document', 'image', 'video'].includes(templateDataheader.type):
+                            templateDataheader[templateDataheader.type] = parameterHeader[templateDataheader.type];
 
-                        break;
-                    case ['text'].includes(whatsappTemplateDataHeader.type):
-                        whatsappTemplateDataHeader.text = whatsappTemplate.data.header_body;
-                        break;
+                            if (templateDataheader.type === 'document' && !isEmpty(parameterHeader[templateDataheader.type]?.filename)) {
+                                templateDataheader[templateDataheader.type].filename = parameterHeader[templateDataheader.type].filename;
+                            }
+
+                            break;
+                        case ['text'].includes(templateDataheader.type):
+                            templateDataheader.text = parameterHeader[templateDataheader.type];
+                            break;
+                    }
+
+                    contentBody.header = templateDataheader;
                 }
-
-                contentBody.header = whatsappTemplateDataHeader;
             }
 
-            if (!isEmpty(whatsappTemplate.data.body)) {
-                let whatsappTemplateDataBody = whatsappTemplate.data.body;
+            if (!isEmpty(templateData.body)) {
+                let templateDataBody = templateData.body;
+                const parameterBody = requestComponents.find((row) => row.type === 'body')?.parameters || [];
 
-                if (!isEmpty(body.components)) {
-                    const parameterBody = body.components.find((row) => row.type === 'body')?.parameters || [];
-
-                    if (!isEmpty(parameterBody)) {
-                        for (let i in parameterBody) {
-                            let value = parameterBody[i].text.toString();
-
+                if (!isEmpty(parameterBody)) {
+                    for (let i in parameterBody) {
+                        const value = parameterBody[i].text?.toString();
+                        if (value !== undefined) {
                             whatsappBroadcastData.field += `,${value}`;
-                            whatsappTemplateDataBody = whatsappTemplateDataBody.replace(new RegExp(`{{(${parseInt(i) + 1})}}`, 'g'), value);
+                            templateDataBody = templateDataBody.replace(new RegExp(`{{(${parseInt(i) + 1})}}`, 'g'), value);
                         }
                     }
                 }
 
                 contentBody.body = {
-                    text: whatsappTemplateDataBody
+                    text: templateDataBody
                 };
             }
 
-            if (!isEmpty(whatsappTemplate.data.footer)) {
-                contentBody.footer = whatsappTemplate.data.footer;
+            if (!isEmpty(templateData.footer)) {
+                contentBody.footer = templateData.footer;
             }
 
-            if (!isEmpty(whatsappTemplate.data.button)) {
-                const whatsappTemplateDataButton = jsonParse(whatsappTemplate.data.button);
+            if (!isEmpty(templateData.button)) {
+                const templateDataButton = jsonParse(templateData.button);
                 let buttonData = [];
 
-                if (whatsappTemplateDataButton?.web) {
+                if (templateDataButton?.web) {
                     buttonData.push({
-                        type: whatsappTemplateDataButton.web.type,
-                        text: whatsappTemplateDataButton.web.text,
-                        url: whatsappTemplateDataButton.web.url
+                        type: templateDataButton.web.type,
+                        text: templateDataButton.web.text,
+                        url: templateDataButton.web.url
                     });
                 }
 
-                if (whatsappTemplateDataButton?.call) {
+                if (templateDataButton?.call) {
                     buttonData.push({
-                        type: whatsappTemplateDataButton.call.type,
-                        text: whatsappTemplateDataButton.call.text,
-                        country_code: whatsappTemplateDataButton.call.country_code,
-                        phone_number: whatsappTemplateDataButton.call.phone_number
+                        type: templateDataButton.call.type,
+                        text: templateDataButton.call.text,
+                        country_code: templateDataButton.call.country_code,
+                        phone_number: templateDataButton.call.phone_number
                     });
                 }
 
                 if (!isEmpty(buttonData)) {
                     contentBody.buttons = buttonData;
+                }
+            }
+
+            if (templateData.campaign_format_id === 2 && !isEmpty(requestComponents)) {
+                const cards = await whatsappCardsModel.getAll({
+                    wa_template_id: templateData.id,
+                    is_active: 1
+                });
+
+                if (cards.total_data > 0) {
+                    const requestCarouselCards = requestComponents.find((row) => row.type === 'carousel')?.cards || [];
+
+                    const templateDataCards = cards.data.map((card, i) => {
+                        let templateDataCard = {
+                            header: card.header,
+							body: { text: card.body },
+							buttons: card.buttons
+                        };
+
+                        const cardComponents = requestCarouselCards.find((row) => Number(row.card_index) === i)?.components || [];
+                        const parameterCardHeader = cardComponents.find((row) => row.type === 'header')?.parameters?.[0];
+
+                        if (!isEmpty(parameterCardHeader)) {
+                            templateDataCard.header = {
+                                format: parameterCardHeader.type,
+                                link: parameterCardHeader[parameterCardHeader.type].link
+                            }
+                        }
+
+                        const cardComponentButtons = cardComponents.filter((row) => row.type === 'button') || [];
+
+                        for (const cardComponentButton of cardComponentButtons) {
+                            if (Array.isArray(templateDataCard.buttons)) {
+                                const idxButtonQuickReply = templateDataCard.buttons.findIndex((row) => row.type === 'quick_reply');
+                                const idxButtonUrl = templateDataCard.buttons.findIndex((row) => row.type === 'url');
+
+                                if (cardComponentButton.sub_type === 'quick_reply' && idxButtonQuickReply >= 0) {
+                                    templateDataCard.buttons[idxButtonQuickReply].text = cardComponentButton.parameters[0].payload;
+                                }
+
+                                if (cardComponentButton.sub_type === 'url' && idxButtonUrl >= 0) {
+                                    templateDataCard.buttons[idxButtonUrl].text = cardComponentButton.parameters[0].text;
+                                }
+                            }
+                        }
+
+						return templateDataCard;
+					});
+
+                    contentBody.cards = templateDataCards;
                 }
             }
 
@@ -746,6 +800,7 @@ exports.sendTemplate = async (req, res) => {
 
         return responseHelper.sendSuccess(res, api?.data || null);
     } catch (err) {
+        console.log(err)
         logger.error({
             from: 'messages:sendTemplate',
             message: `Send template message to ${wa_id} error! ${err?.message}`,
