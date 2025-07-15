@@ -33,11 +33,11 @@ exports.fetchLanguages = async (req, res) => {
             throw new Error(message, { cause: api?.data || null });
         }
 
-        logger.success({
-            from: 'template-languages:fetchLanguages',
-            message: 'Fetch template languages success',
-            result: api?.data || null
-        });
+        // logger.success({
+        //     from: 'template-languages:fetchLanguages',
+        //     message: 'Fetch template languages success',
+        //     result: api?.data || null
+        // });
 
         return responseHelper.sendSuccess(res, api?.data || null);
     } catch (err) {

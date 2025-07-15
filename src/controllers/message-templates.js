@@ -42,11 +42,11 @@ exports.fetchTemplate = async (req, res) => {
             throw new Error(message, { cause: api?.data || null });
         }
 
-        logger.success({
-            from: 'message-templates:fetchTemplate',
-            message: 'Fetch template success!',
-            result: api?.data || null
-        });
+        // logger.success({
+        //     from: 'message-templates:fetchTemplate',
+        //     message: 'Fetch template success!',
+        //     result: api?.data || null
+        // });
 
         return responseHelper.sendSuccess(res, api?.data || null);
     } catch (err) {

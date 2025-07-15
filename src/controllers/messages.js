@@ -693,6 +693,7 @@ exports.sendTemplate = async (req, res) => {
                 if (!isEmpty(parameterBody)) {
                     for (let i in parameterBody) {
                         const value = parameterBody[i].text?.toString();
+
                         if (value !== undefined) {
                             whatsappBroadcastData.field += `,${value}`;
                             templateDataBody = templateDataBody.replace(new RegExp(`{{(${parseInt(i) + 1})}}`, 'g'), value);
@@ -747,8 +748,8 @@ exports.sendTemplate = async (req, res) => {
                     const templateDataCards = cards.data.map((card, i) => {
                         let templateDataCard = {
                             header: card.header,
-							body: { text: card.body },
-							buttons: card.buttons
+                            body: { text: card.body },
+                            buttons: card.buttons
                         };
 
                         const cardComponents = requestCarouselCards.find((row) => Number(row.card_index) === i)?.components || [];
@@ -758,7 +759,7 @@ exports.sendTemplate = async (req, res) => {
                             templateDataCard.header = {
                                 format: parameterCardHeader.type,
                                 link: parameterCardHeader[parameterCardHeader.type].link
-                            }
+                            };
                         }
 
                         const cardComponentButtons = cardComponents.filter((row) => row.type === 'button') || [];
@@ -778,8 +779,8 @@ exports.sendTemplate = async (req, res) => {
                             }
                         }
 
-						return templateDataCard;
-					});
+                        return templateDataCard;
+                    });
 
                     contentBody.cards = templateDataCards;
                 }
@@ -800,7 +801,6 @@ exports.sendTemplate = async (req, res) => {
 
         return responseHelper.sendSuccess(res, api?.data || null);
     } catch (err) {
-        console.log(err)
         logger.error({
             from: 'messages:sendTemplate',
             message: `Send template message to ${wa_id} error! ${err?.message}`,
