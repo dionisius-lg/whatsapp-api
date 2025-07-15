@@ -7,16 +7,62 @@ const rfs = require('rotating-file-stream');
 const path = require('path');
 const valueHelper = require('./value');
 
-exports.access = (app) => {
-    const logPath = path.resolve('./', 'logs/access');
+const createWinstonLogger = (type = 'success') => {
+    const logDir = path.resolve('./', 'logs', type);
 
-    if (!fs.existsSync(logPath)) {
-        fs.mkdirSync(logPath, { recursive: true });
+    if (!fs.existsSync(logDir)) {
+        fs.mkdirSync(logDir, { recursive: true });
+    }
+
+    const transport = new winston.transports.DailyRotateFile({
+        filename: path.resolve(logDir, `${type}-%DATE%.log`),
+        datePattern: 'YYYY-MM-DD',
+        zippedArchive: true, // gzip compressed
+        maxFiles: (3 * 31) + 'd', // keep 3 months of logs
+        auditFile: path.resolve(logDir, `${type}-audit.json`)
+    });
+
+    transport.on('rotate', (oldFile, newFile) => {
+        console.log(`[logger] Rotate ${type} log: ${oldFile} to ${newFile}`);
+    });
+
+    const logger = winston.createLogger({
+        format: winston.format.combine(
+            winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+            winston.format.printf((log) => `${log.timestamp} ${JSON.stringify(log.message)}`)
+        ),
+        transports: [
+            new winston.transports.Console(),
+            transport
+        ]
+    });
+
+    return logger;
+};
+
+const cacheWinstonLogger = {};
+
+const winstonLogger = (type = 'success') => {
+    if (cacheWinstonLogger[type]) {
+        return cacheWinstonLogger[type];
+    }
+
+    const logger = createWinstonLogger(type);
+    cacheWinstonLogger[type] = logger;
+
+    return logger;
+};
+
+exports.access = (app) => {
+    const logDir = path.resolve('./', 'logs/access');
+
+    if (!fs.existsSync(logDir)) {
+        fs.mkdirSync(logDir, { recursive: true });
     }
 
     const logName = (time) => {
         if (time) {
-            return ['access', dateFormat(time, 'yyyy-mm-dd'), '.log'].join('-');
+            return ['access', dateFormat(time, 'yyyy-mm-dd'), '.log', '.gz'].join('-');
         }
 
         return 'access.log';
@@ -24,7 +70,7 @@ exports.access = (app) => {
 
     const logStream = rfs.createStream(logName, {
         interval: '1d', // rotate daily
-        path: logPath, // log path
+        path: logDir, // log path
         compress: 'gzip', // compress old file
         maxFiles: (3 * 31) // max files to keep
     });
@@ -44,7 +90,7 @@ exports.access = (app) => {
     });
 
     morgan.token('date', () => {
-        return dateFormat(new Date(), 'yyyy-mm-dd HH:MM:ss');
+        return dateFormat(new Date(), 'yyyy-mm-dd HH:mm:ss');
     });
 
     morgan.token('secret', (req) => {
@@ -55,73 +101,23 @@ exports.access = (app) => {
 };
 
 exports.success = ({ from = 'server', message = '', result = null }) => {
-    const logPath = path.resolve('./', 'logs/success');
-
-    if (!fs.existsSync(logPath)) {
-        fs.mkdirSync(logPath, { recursive: true });
-    }
-
-    const transport = new winston.transports.DailyRotateFile({
-        filename: path.resolve(logPath, 'success-%DATE%.log'),
-        datePattern: 'YYYY-MM-DD',
-        zippedArchive: true,
-        maxFiles: (3 * 31).toString() + 'd',
-        auditFile: path.resolve(logPath, 'audit.json')
-    });
-
-    transport.on('rotate', (oldFile, newFile) => {
-        console.log(`Rotate log: ${oldFile} to ${newFile}`);
-    });
-
-    const logger = winston.createLogger({
-        format: winston.format.combine(
-            winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-            winston.format.printf((info) => `${info.timestamp} ${JSON.stringify(info.message.log)}`)
-        ),
-        transports: [new winston.transports.Console(), transport]
-    });
-
-    let log = { status: 'success', from, message };
+    const logger = winstonLogger('success');
+    let log = { from, message };
 
     if (!valueHelper.isEmpty(result)) {
         log.result = result;
     }
 
-    return logger.info({ log });
+    logger.info({ log });
 };
 
 exports.error = ({ from = 'server', message = '', result = null }) => {
-    const logPath = path.resolve('./', 'logs/error');
-
-    if (!fs.existsSync(logPath)) {
-        fs.mkdirSync(logPath, { recursive: true });
-    }
-
-    const transport = new winston.transports.DailyRotateFile({
-        filename: path.resolve(logPath, 'error-%DATE%.log'),
-        datePattern: 'YYYY-MM-DD',
-        zippedArchive: true,
-        maxFiles: (3 * 31).toString() + 'd',
-        auditFile: path.resolve(logPath, 'audit.json')
-    });
-
-    transport.on('rotate', (oldFile, newFile) => {
-        console.log(`Rotate log: ${oldFile} to ${newFile}`);
-    });
-
-    const logger = winston.createLogger({
-        format: winston.format.combine(
-            winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-            winston.format.printf((info) => `${info.timestamp} ${JSON.stringify(info.message.log)}`)
-        ),
-        transports: [new winston.transports.Console(), transport]
-    });
-
-    let log = { status: 'error', from, message };
+    const logger = winstonLogger('error');
+    let log = { from, message };
 
     if (!valueHelper.isEmpty(result)) {
         log.result = result;
     }
 
-    return logger.error({ log });
+    logger.error({ log });
 };

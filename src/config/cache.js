@@ -29,7 +29,7 @@ if (service.toString() === '1') {
             return;
         }
 
-        console.log(`[cache] Subscribed to ${count} channel(s).`);
+        console.log(`[cache] Subscribed to ${count} channel(s)`);
     });
 
     client.on('ready', () => {

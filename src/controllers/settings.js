@@ -59,11 +59,11 @@ exports.getProfile = async (req, res) => {
         const { data: { settings: { business: { profile } } } } = api;
         await settingsModel.insertUpdateData([{ code: 'WHATSAPP_PROFILE', attributes: JSON.stringify(profile) }]);
 
-        logger.success({
-            from: 'settings:getProfile',
-            message: 'Get business profile success',
-            result: api?.data || null
-        });
+        // logger.success({
+        //     from: 'settings:getProfile',
+        //     message: 'Get business profile success',
+        //     result: api?.data || null
+        // });
 
         return responseHelper.sendSuccess(res, { profile });
     } catch (err) {
@@ -178,11 +178,11 @@ exports.getProfileAbout = async (req, res) => {
         const { data: { settings: { profile: { about } } } } = api;
         await settingsModel.insertUpdateData([{ code: 'WHATSAPP_PROFILE_ABOUT', attributes: JSON.stringify(about) }]);
 
-        logger.success({
-            from: 'settings:getProfileAbout',
-            message: 'Get business profile about success',
-            result: api?.data || null
-        });
+        // logger.success({
+        //     from: 'settings:getProfileAbout',
+        //     message: 'Get business profile about success',
+        //     result: api?.data || null
+        // });
 
         return responseHelper.sendSuccess(res, { about });
     } catch (err) {
@@ -306,11 +306,11 @@ exports.getProfilePhoto = async (req, res) => {
 
         const { data: { settings: { profile: { photo } } } } = api;
 
-        logger.success({
-            from: 'settings:getProfilePhoto',
-            message: 'Get business profile photo success',
-            result: api?.data || null
-        });
+        // logger.success({
+        //     from: 'settings:getProfilePhoto',
+        //     message: 'Get business profile photo success',
+        //     result: api?.data || null
+        // });
 
         return responseHelper.sendSuccess(res, { photo });
     } catch (err) {

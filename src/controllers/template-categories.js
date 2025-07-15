@@ -33,11 +33,11 @@ exports.fetchCategories = async (req, res) => {
             throw new Error(message, { cause: api?.data || null });
         }
 
-        logger.success({
-            from: 'template-categories:fetchCategories',
-            message: 'Fetch template categories success',
-            result: api?.data || null
-        });
+        // logger.success({
+        //     from: 'template-categories:fetchCategories',
+        //     message: 'Fetch template categories success',
+        //     result: api?.data || null
+        // });
 
         return responseHelper.sendSuccess(res, api?.data || null);
     } catch (err) {
