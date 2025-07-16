@@ -1,4 +1,3 @@
-import js from "@eslint/js";
 import globals from "globals";
 import { defineConfig } from "eslint/config";
 
@@ -7,11 +6,6 @@ export default defineConfig([
     files: ["**/*.js"],
     languageOptions: {
       sourceType: "commonjs",
-    },
-  },
-  {
-    files: ["**/*.js"],
-    languageOptions: {
       globals: globals.browser,
     },
     rules: {
@@ -41,10 +35,10 @@ export default defineConfig([
         "error",
         "^(?:[A-Z][a-zA-Z0-9]*([A-Z][a-zA-Z0-9]*)*|[a-z][a-zA-Z0-9]*([A-Z][a-zA-Z0-9]*)*|[_a-z]+(?:_[a-z]+)*)$", // Enforce camelCase/PascalCase/snake_case
         {
-          properties: true, // Apply to object properties too, if you want
-          classFields: true, // Apply to class fields, if you want
-          onlyDeclarations: false, // Apply to all identifiers, not just declarations
-          ignoreDestructuring: false, // The regex will apply to destructured variables too
+          properties: true,
+          classFields: true,
+          onlyDeclarations: false,
+          ignoreDestructuring: false,
         },
       ],
       "dot-notation": [
@@ -53,23 +47,22 @@ export default defineConfig([
           allowPattern: "^[a-z]+(_[a-z]+)*$",
         },
       ],
-      "class-methods-use-this": "warn", // Ensure methods inside classes are camelCase
+      "class-methods-use-this": "warn",
       "new-cap": [
         "error",
         {
-          newIsCap: false, // Allow camelCase for class names
-          capIsNew: false, // Allow functions to start with PascalCase
+          newIsCap: false,
+          capIsNew: false,
         },
       ],
       "brace-style": [
         "error",
         "1tbs", // Enforce "one true brace style" (same line opening brace)
-        { allowSingleLine: true }, // Allow single-line statements
+        {
+          allowSingleLine: true // Allow single-line statements
+        },
       ],
-      "space-before-blocks": [
-        "error",
-        "always", // Require space before `{`
-      ],
+      "space-before-blocks": ["error", "always"], // Require space before `{`
       "space-before-function-paren": [
         "error",
         {
