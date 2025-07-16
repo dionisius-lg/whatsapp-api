@@ -34,7 +34,7 @@ const createMorganStream = (type = 'access') => {
     });
 
     return stream;
-}
+};
 
 const cacheMorganStream = {};
 
