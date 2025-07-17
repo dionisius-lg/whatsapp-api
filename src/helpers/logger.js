@@ -7,6 +7,48 @@ const rfs = require('rotating-file-stream');
 const path = require('path');
 const valueHelper = require('./value');
 
+const createMorganStream = (type = 'access') => {
+    const dir = path.resolve('./', 'logs', type);
+
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+
+    const filename = (time) => {
+        return time ? `access-${dateFormat(time, 'yyyy-mm-dd')}.log.gz` : 'access.log';
+    };
+
+    const stream = rfs.createStream(filename, {
+        interval: '1m',
+        path: dir,
+        compress: 'gzip',
+        maxFiles: 90
+    });
+
+    stream.on('rotated', (filename) => {
+        console.log(`[logger] Rotate ${type} log:`, filename);
+    });
+
+    stream.on('error', (err) => {
+        console.log(`[logger] Stream ${type} log error:`, err);
+    });
+
+    return stream;
+}
+
+const cacheMorganStream = {};
+
+const morganStream = (type = 'access') => {
+    if (cacheMorganStream[type]) {
+        return cacheMorganStream[type];
+    }
+
+    const stream = createMorganStream(type);
+    cacheMorganStream[type] = stream;
+
+    return stream;
+};
+
 const createWinstonLogger = (type = 'success') => {
     const logDir = path.resolve('./', 'logs', type);
 
@@ -15,21 +57,26 @@ const createWinstonLogger = (type = 'success') => {
     }
 
     const transport = new winston.transports.DailyRotateFile({
+        level: 'info',
         filename: path.resolve(logDir, `${type}-%DATE%.log`),
         datePattern: 'YYYY-MM-DD',
-        zippedArchive: true, // gzip compressed
-        maxFiles: (3 * 31) + 'd', // keep 3 months of logs
+        zippedArchive: true,
+        maxFiles: 90,
         auditFile: path.resolve(logDir, `${type}-audit.json`)
     });
 
-    transport.on('rotate', (oldFile, newFile) => {
-        console.log(`[logger] Rotate ${type} log: ${oldFile} to ${newFile}`);
+    transport.on('rotate', (oldFilename, newFilename) => {
+        console.log(`[logger] Rotate ${type} log:`, oldFilename, 'to', newFilename);
+    });
+
+    transport.on('error', error => {
+        console.log(`[logger] Stream ${type} log error:`, err);
     });
 
     const logger = winston.createLogger({
         format: winston.format.combine(
             winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-            winston.format.printf((log) => `${log.timestamp} ${JSON.stringify(log.message)}`)
+            winston.format.printf((info) => `${info.timestamp} ${JSON.stringify(info.message)}`)
         ),
         transports: [
             new winston.transports.Console(),
@@ -54,26 +101,7 @@ const winstonLogger = (type = 'success') => {
 };
 
 exports.access = (app) => {
-    const logDir = path.resolve('./', 'logs/access');
-
-    if (!fs.existsSync(logDir)) {
-        fs.mkdirSync(logDir, { recursive: true });
-    }
-
-    const logName = (time) => {
-        if (time) {
-            return ['access', dateFormat(time, 'yyyy-mm-dd'), '.log', '.gz'].join('-');
-        }
-
-        return 'access.log';
-    };
-
-    const logStream = rfs.createStream(logName, {
-        interval: '1d', // rotate daily
-        path: logDir, // log path
-        compress: 'gzip', // compress old file
-        maxFiles: (3 * 31) // max files to keep
-    });
+    const stream = morganStream('access');
 
     morgan.token('body', (req) => {
         let { body } = req;
@@ -97,7 +125,7 @@ exports.access = (app) => {
         return req.headers && req.headers['x-api-key'];
     });
 
-    app.use(morgan(':remote-addr :remote-user [:date] :status [secret=:secret] ":method :url HTTP/:http-version" :body :response-time ms - :res[content-length] ', { stream: logStream }));
+    app.use(morgan(':remote-addr :remote-user [:date] :status [secret=:secret] ":method :url HTTP/:http-version" :body :response-time ms - :res[content-length] ', { stream }));
 };
 
 exports.success = ({ from = 'server', message = '', result = null }) => {

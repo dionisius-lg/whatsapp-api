@@ -1,12 +1,32 @@
 const router = require('express').Router();
-const { readdirSync } = require('fs');
+const fs = require('fs');
 const path = require('path');
-const { env } = require('./../config');
-const response = require('./../helpers/response');
-const { authenticateKey } = require('./../middleware/auth');
+const config = require('./../config');
+const authMiddleware = require('./../middleware/auth');
+const fileHelper = require('./../helpers/file');
+const responseHelper = require('./../helpers/response');
 
+const { readdirSync } = fs;
+const { env } = config;
+const { authenticateKey } = authMiddleware;
+const { getContent } = fileHelper;
 const basename = path.basename(__filename);
 const publicPath = ['/webhooks', '/files'];
+
+const packageData = () => {
+    try {
+        const fileData = getContent('package.json');
+        const jsonData = JSON.parse(fileData);
+
+        if (typeof jsonData === 'object' && Object.keys(jsonData).length > 0) {
+            return jsonData;
+        }
+
+        throw new Error('Get content failed');
+    } catch (_err) {
+        return {};
+    }
+};
 
 const matchInArray = (string, expression) => {
     for (let exp of expression) {
@@ -31,7 +51,14 @@ const unlessPath = (pathArr = [], middleware) => {
 };
 
 router.get('/', (req, res) => {
-    return res.send({ app: 'Whatsapp API' });
+    let pkg = packageData();
+
+    if (pkg?.name && typeof pkg.name === 'string') {
+        // split the string into an array by hyphens, capitalize the first letter of each word, join the words with a space
+        pkg.name = pkg.name.split('-').map((w) => w === 'api' ? w.toUpperCase() : w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    }
+
+    return res.send({ app: pkg?.name || 'API' });
 });
 
 // require x-api-key header
@@ -45,19 +72,19 @@ readdirSync(__dirname).filter((file) => {
 });
 
 // for non-existing route
-router.use('*', (req, res) => {
-    response.sendNotFound(res);
+router.use((req, res, next) => {
+    responseHelper.sendNotFound(res);
 });
 
 if (env === 'production') {
     // override error
     router.use((err, req, res, next) => {
         if (err instanceof SyntaxError) {
-            return response.sendBadRequest(res);
+            return responseHelper.sendBadRequest(res);
         }
 
         console.error(err.stack);
-        response.sendInternalServerError(res);
+        responseHelper.sendInternalServerError(res);
     });
 }
 
