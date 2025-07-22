@@ -7,7 +7,7 @@ const { existsSync, mkdirSync } = fs;
 const { file_dir } = config;
 const { isEmpty } = valueHelper;
 
-const storage = ({ subpath = '' }) => {
+const storage = (subpath = '') => {
     return multer.diskStorage({
         destination: (req, file, cb) => {
             let path = file_dir.replace(/^\/|\/$/g, ''); // remove first & last slash
