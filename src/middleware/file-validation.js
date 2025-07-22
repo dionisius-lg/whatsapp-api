@@ -11,7 +11,7 @@ const singleFile = ({ fieldname = '', subpath = '', filesize = 1, filefilter = '
         const ymd = dateFormat(new Date(), 'yyyy/mm/dd');
 
         let options = {
-            storage: storage({ subpath: `${subpath}/${ymd}` }),
+            storage: storage(`${subpath}/${ymd}`),
             limits: { fileSize: 1000000 * filesize } // limits in bytes
         };
 
@@ -40,7 +40,7 @@ const multiFile = ({ fieldname, subpath = '', filesize = 1, filefilter, filemax 
         const ymd = dateFormat(new Date(), 'yyyy/mm/dd');
 
         let options = {
-            storage: storage({ subpath: `${subpath}/${ymd}` }),
+            storage: storage(`${subpath}/${ymd}`),
             limits: { fileSize: 1000000 * filesize } // limits in bytes
         };
 
@@ -51,7 +51,7 @@ const multiFile = ({ fieldname, subpath = '', filesize = 1, filefilter, filemax 
         const upload = multer(options).array(fieldname, filemax);
 
         upload(req, res, async (err) => {
-            if (!req.file) {
+            if (!req.files) {
                 return responseHelper.sendBadRequest(res, 'Please select file to upload');
             }
 

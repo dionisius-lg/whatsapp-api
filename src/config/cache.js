@@ -17,10 +17,10 @@ let client = null;
 let connected = false;
 
 if (service.toString() === '1') {
-    subscriber = new redis(options);
+    const subscribe = new redis(options);
     client = new redis(options);
 
-    subscriber = subscriber(channel);
+    subscriber = subscribe(channel);
 
     subscriber.subscribe(channel, (err, count) => {
         if (err) {
@@ -33,22 +33,22 @@ if (service.toString() === '1') {
     });
 
     client.on('ready', () => {
-        console.log('[redis] is ready');
+        console.log('[cache] is ready');
         client?.config('SET', 'notify-keyspace-events', 'Ex');
     });
 
     client.on('connect', () => {
-        console.log('[redis] is connected');
+        console.log('[cache] is connected');
         connected = true;
     });
 
     client.on('error', (err) => {
-        console.error(`[redis] error: ${err?.message}`);
+        console.error(`[cache] error: ${err?.message}`);
         connected = false;
     });
 
     client.on('reconnecting', () => {
-        console.log('[redis] reconnecting...');
+        console.log('[cache] reconnecting...');
         connected = false;
     });
 }
