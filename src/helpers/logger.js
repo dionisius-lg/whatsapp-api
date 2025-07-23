@@ -76,7 +76,18 @@ const createWinstonLogger = (type = 'success') => {
     const logger = winston.createLogger({
         format: winston.format.combine(
             winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-            winston.format.printf((info) => `${info.timestamp} ${JSON.stringify(info.message)}`)
+            winston.format.printf((info) => {
+                let logData = {
+                    from: info.from,
+                    message: info.message
+                };
+
+                if (!valueHelper.isEmpty(info.result)) {
+                    logData.result = info.result;
+                }
+
+                return `${info.timestamp} ${JSON.stringify(logData)}`
+            })
         ),
         transports: [
             new winston.transports.Console(),
@@ -130,22 +141,14 @@ exports.access = (app) => {
 
 exports.success = ({ from = 'server', message = '', result = null }) => {
     const logger = winstonLogger('success');
-    let log = { from, message };
+    let log = { from, message, result };
 
-    if (!valueHelper.isEmpty(result)) {
-        log.result = result;
-    }
-
-    logger.info({ log });
+    logger.info(log);
 };
 
 exports.error = ({ from = 'server', message = '', result = null }) => {
     const logger = winstonLogger('error');
-    let log = { from, message };
+    let log = { from, message, result };
 
-    if (!valueHelper.isEmpty(result)) {
-        log.result = result;
-    }
-
-    logger.error({ log });
+    logger.error(log);
 };
