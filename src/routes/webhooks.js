@@ -1,8 +1,18 @@
 const router = require('express').Router();
 const controller = require('./../controllers/webhooks');
+const fileHelper = require('./../helpers/file');
+
+const { getContent } = fileHelper;
 
 router.get('/', (req, res) => {
-    return res.send({ app: 'Whatsapp API Webhook' });
+    let pkg = JSON.parse(getContent('package.json'));
+
+    if (pkg?.name && typeof pkg.name === 'string') {
+        // split the string into an array by hyphens, capitalize the first letter of each word, join the words with a space
+        pkg.name = pkg.name.split('-').map((w) => w === 'api' ? w.toUpperCase() : w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    }
+
+    return res.send({ app: pkg?.name + ' Webhook' || 'API Webhook' });
 });
 
 router.post('/', async (req, res) => {
