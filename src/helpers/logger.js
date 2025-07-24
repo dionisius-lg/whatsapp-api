@@ -19,7 +19,7 @@ const createMorganStream = (type = 'access') => {
     };
 
     const stream = rfs.createStream(filename, {
-        interval: '1m',
+        interval: '1d',
         path: dir,
         compress: 'gzip',
         maxFiles: 90
