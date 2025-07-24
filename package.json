@@ -9,8 +9,8 @@
     "dev": "NODE_ENV=development pm2 start app.js --name whatsapp-api --log-date-format 'YYYY-MM-DD HH:mm:ss Z'",
     "prod": "NODE_ENV=production pm2 start app.js --name whatsapp-api --log-date-format 'YYYY-MM-DD HH:mm:ss Z'"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Dionisius",
+  "license": "MIT",
   "description": "",
   "dependencies": {
     "@joi/date": "^2.1.1",
