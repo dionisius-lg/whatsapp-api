@@ -43,7 +43,7 @@ app.listen(port, '0.0.0.0', (err) => {
         console.error(err);
     }
 
-    console.log(`[server] is running for ${env} environtment | port ${port}`);
+    console.log(`[server] is running for ${env} environment | port ${port}`);
 });
 
 // flag for resend failed message inbound
