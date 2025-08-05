@@ -7,7 +7,7 @@ const valueHelper = require('./../helpers/value');
 const whatsappApi = require('./../helpers/whatsapp-api');
 const messagesModel = require('./../models/messages');
 const ticketMediasModel = require('./../models/ticket-medias-cc');
-const ticketModel = require('./../models/tickets-cc');
+const ticketsModel = require('./../models/tickets-cc');
 const whatsappBroadcastsModel = require('./../models/whatsap-broadcasts-cc');
 const whatsappCardsModel = require('./../models/whatsapp-cards-cc');
 const whatsappTemplatesModel = require('./../models/whatsapp-templates-cc');
@@ -90,7 +90,7 @@ exports.sendContact = async (req, res) => {
             wa_message_id
         });
 
-        const tickets = ticketModel.getAll({
+        const tickets = ticketsModel.getAll({
             contact: wa_id,
             media_id: 4,
             limit: 1,
@@ -199,7 +199,7 @@ exports.sendLocation = async (req, res) => {
             wa_message_id
         });
 
-        const tickets = ticketModel.getAll({
+        const tickets = ticketsModel.getAll({
             contact: wa_id,
             media_id: 4,
             limit: 1,
@@ -300,7 +300,7 @@ exports.sendMedia = async (req, res) => {
             wa_message_id
         });
 
-        const tickets = ticketModel.getAll({
+        const tickets = ticketsModel.getAll({
             contact: wa_id,
             media_id: 4,
             limit: 1,
@@ -434,7 +434,7 @@ exports.sendReplyButton = async (req, res) => {
             wa_message_id
         });
 
-        const tickets = ticketModel.getAll({
+        const tickets = ticketsModel.getAll({
             contact: wa_id,
             media_id: 4,
             limit: 1,
@@ -546,7 +546,7 @@ exports.sendReplyList = async (req, res) => {
             wa_message_id
         });
 
-        const tickets = ticketModel.getAll({
+        const tickets = ticketsModel.getAll({
             contact: wa_id,
             media_id: 4,
             limit: 1,
@@ -869,7 +869,7 @@ exports.sendText = async (req, res) => {
             wa_message_id
         });
 
-        const tickets = ticketModel.getAll({
+        const tickets = ticketsModel.getAll({
             contact: wa_id,
             media_id: 4,
             limit: 1,
