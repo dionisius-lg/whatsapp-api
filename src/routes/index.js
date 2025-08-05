@@ -1,35 +1,25 @@
 const router = require('express').Router();
 const fs = require('fs');
 const path = require('path');
-const config = require('./../config');
-const authMiddleware = require('./../middleware/auth');
-const fileHelper = require('./../helpers/file');
 const responseHelper = require('./../helpers/response');
+const fileHelper = require('./../helpers/file');
+const authMiddleware = require('./../middleware/auth');
 
-const { readdirSync } = fs;
-const { env } = config;
-const { authenticateKey } = authMiddleware;
+const { readdirSync, statSync } = fs;
 const { getContent } = fileHelper;
+const { authenticateKey } = authMiddleware;
+
 const basename = path.basename(__filename);
-const publicPath = ['/webhooks', '/files'];
+const publicPaths = ['webhook', 'whatsapp'];
 
-const packageData = () => {
-    try {
-        const fileData = getContent('package.json');
-        const jsonData = JSON.parse(fileData);
-
-        if (typeof jsonData === 'object' && Object.keys(jsonData).length > 0) {
-            return jsonData;
-        }
-
-        throw new Error('Get content failed');
-    } catch (_err) {
-        return {};
-    }
-};
-
-const matchInArray = (string, expression) => {
-    for (let exp of expression) {
+/**
+ * checks if a given string matches any of the provided regular expressions
+ * @param {string} string - string to test
+ * @param {Array<RegExp>} expressions - an array of regular expressions
+ * @returns {boolean} - true if a match is found, false otherwise
+ */
+const matchInArray = (string, expressions) => {
+    for (const exp of expressions) {
         if (string.match(exp)) {
             return true;
         }
@@ -38,6 +28,13 @@ const matchInArray = (string, expression) => {
     return false;
 };
 
+/**
+ * middleware factory to conditionally apply a middleware
+ * middleware will NOT be applied if the request path is in the `pathArr` or matches any of the regexes derived from `pathArr`
+ * @param {Array<string>} pathArr - array of paths (or path segments) to exclude the middleware from
+ * @param {Function} middleware - middleware to apply conditionally
+ * @returns {Function} - conditional middleware function
+ */
 const unlessPath = (pathArr = [], middleware) => {
     return function (req, res, next) {
         const insideRegex = matchInArray(req.path, pathArr.map((p) => new RegExp(p)));
@@ -50,42 +47,42 @@ const unlessPath = (pathArr = [], middleware) => {
     };
 };
 
+// ---
+// ## root route
 router.get('/', (req, res) => {
-    let pkg = packageData();
+    let pkg = {};
 
-    if (pkg?.name && typeof pkg.name === 'string') {
-        // split the string into an array by hyphens, capitalize the first letter of each word, join the words with a space
-        pkg.name = pkg.name.split('-').map((w) => w === 'api' ? w.toUpperCase() : w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    try {
+        pkg = JSON.parse(getContent('package.json'));
+    } catch (__err) {
+        // do nothing
     }
 
-    return res.send({ app: pkg?.name || 'API' });
+    if (pkg?.name && typeof pkg.name === 'string') {
+        pkg.name = pkg.name.split('-').map((w) => w.toLowerCase() === 'api' ? w.toUpperCase() : w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    }
+
+    return res.send({ app: pkg?.name || 'Gateway' });
 });
 
-// require x-api-key header
-router.use(unlessPath([...publicPath], authenticateKey));
+// ---
+// ## authentication middleware
+// require x-api-key header for all routes EXCEPT those in publicPaths
+router.use(unlessPath([...publicPaths], authenticateKey));
 
-readdirSync(__dirname).filter((file) => {
-    return file.includes('.') && file !== basename && path.extname(file) === '.js';
-}).forEach((file) => {
-    let filename = path.parse(file).name;
-    router.use(`/${filename}`, require(`./${filename}`));
-});
+// ---
+// ## dynamic route load
+readdirSync(__dirname)
+    .filter((file) => file !== basename && path.extname(file) === '.js' && statSync(path.join(__dirname, file)).isFile())
+    .forEach((file) => {
+        const filename = path.parse(file).name;
+        router.use(`/${filename}`, require(`./${filename}`));
+    });
 
-// for non-existing route
+// ---
+// ## for non-existing routes (404 Not Found)
 router.use((req, res, next) => {
     responseHelper.sendNotFound(res);
 });
-
-if (env === 'production') {
-    // override error
-    router.use((err, req, res, next) => {
-        if (err instanceof SyntaxError) {
-            return responseHelper.sendBadRequest(res);
-        }
-
-        console.error(err.stack);
-        responseHelper.sendInternalServerError(res);
-    });
-}
 
 module.exports = router;

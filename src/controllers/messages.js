@@ -820,7 +820,7 @@ exports.sendTemplate = async (req, res) => {
  * @returns response
  */
 exports.sendText = async (req, res) => {
-    const { body } = req;
+    const { body, decoded } = req;
     const { wa_id } = body;
 
     let messageData = {
