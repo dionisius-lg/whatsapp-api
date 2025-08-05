@@ -112,9 +112,8 @@ const schema = {
         footer: joiExtended.string().min(1).max(60),
         action: joiExtended.object().keys({
             button: joiExtended.string().min(1).max(20).required(),
-            sections: joiExtended.array().min(1).max(10).items(
+            sections: joiExtended.array().length(1).items(
                 joiExtended.object().keys({
-                    title: joiExtended.string().min(1).max(24).required(),
                     rows: joiExtended.array().min(1).max(10).items(
                         joiExtended.object().keys({
                             id: joiExtended.string().min(1).max(200).required(),

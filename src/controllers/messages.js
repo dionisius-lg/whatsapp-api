@@ -5,6 +5,7 @@ const mediaHelper = require('./../helpers/media');
 const responseHelper = require('./../helpers/response');
 const valueHelper = require('./../helpers/value');
 const whatsappApi = require('./../helpers/whatsapp-api');
+const mediaAttachmentsModel = require('./../models/media_attachments-cc');
 const messagesModel = require('./../models/messages');
 const ticketMediasModel = require('./../models/ticket-medias-cc');
 const ticketsModel = require('./../models/tickets-cc');
@@ -40,7 +41,7 @@ exports.sendContact = async (req, res) => {
             media_status_id: 11,
             direction_id: 2,
             wa_to: wa_id,
-            type: 'contacts',
+            type: 'text',
             content: body.contacts.map((row) => `Name: ${row.name.formatted_name}\nPhone: ${row.phones[0].phone}`).join('\n\n'),
             waba_timestamp: dateFormat(new Date(), 'yyyy-mm-dd HH:MM:ss'),
             created_by: decoded?.user_id || 0,
@@ -105,7 +106,7 @@ exports.sendContact = async (req, res) => {
 
             if (insertWhatsapp.total_data > 0) {
                 await ticketMediasModel.insertData({
-                    ticket_id: tickets[0].data.id,
+                    ticket_id: tickets.data[0].id,
                     media_id: 4,
                     direction_id: 2,
                     record_id: insertWhatsapp.data.id
@@ -214,7 +215,7 @@ exports.sendLocation = async (req, res) => {
 
             if (insertWhatsapp.total_data > 0) {
                 await ticketMediasModel.insertData({
-                    ticket_id: tickets[0].data.id,
+                    ticket_id: tickets.data[0].id,
                     media_id: 4,
                     direction_id: 2,
                     record_id: insertWhatsapp.data.id
@@ -267,7 +268,6 @@ exports.sendMedia = async (req, res) => {
             direction_id: 2,
             wa_to: wa_id,
             type: body.type,
-            mime_type: mediaHelper.getMimeType(body.link),
             caption: body?.caption || null,
             content: body?.caption || null,
             waba_timestamp: dateFormat(new Date(), 'yyyy-mm-dd HH:MM:ss'),
@@ -308,17 +308,29 @@ exports.sendMedia = async (req, res) => {
         });
 
         if (tickets.total_data > 0) {
+            const file = await mediaHelper.downloadFile(body.link);
+
             const insertWhatsapp = await whatsappsModel.insertData({
                 ...whatsappData,
+                mime_type: file.mimetype,
                 waba_message_id: wa_message_id
             });
 
             if (insertWhatsapp.total_data > 0) {
-                await ticketMediasModel.insertData({
-                    ticket_id: tickets[0].data.id,
+                const insertTicketMedia = await ticketMediasModel.insertData({
+                    ticket_id: tickets.data[0].id,
                     media_id: 4,
                     direction_id: 2,
                     record_id: insertWhatsapp.data.id
+                });
+
+                await mediaAttachmentsModel.insertData({
+                    path: file.path,
+                    file_name: file.filename,
+                    file_size: file.size,
+                    mime_type: file.mimetype,
+                    media_id: 4,
+                    ref_id: insertTicketMedia.data.id
                 });
             }
         }
@@ -449,7 +461,7 @@ exports.sendReplyButton = async (req, res) => {
 
             if (insertWhatsapp.total_data > 0) {
                 await ticketMediasModel.insertData({
-                    ticket_id: tickets[0].data.id,
+                    ticket_id: tickets.data[0].id,
                     media_id: 4,
                     direction_id: 2,
                     record_id: insertWhatsapp.data.id
@@ -508,14 +520,17 @@ exports.sendReplyList = async (req, res) => {
             sender: 2
         };
 
-        if (!isEmpty(body.action)) {
+        let data = body;
+
+        if (!isEmpty(data.action)) {
             const { action: { button, sections } } = data;
+            data.action.sections.title = button;
 
             let whatsappDataContent = JSON.parse(whatsappData.content);
 
             whatsappDataContent.action = {
                 label: button,
-                options: sections
+                options: sections[0].rows
             };
 
             whatsappData.content = JSON.stringify(whatsappDataContent);
@@ -561,7 +576,7 @@ exports.sendReplyList = async (req, res) => {
 
             if (insertWhatsapp.total_data > 0) {
                 await ticketMediasModel.insertData({
-                    ticket_id: tickets[0].data.id,
+                    ticket_id: tickets.data[0].id,
                     media_id: 4,
                     direction_id: 2,
                     record_id: insertWhatsapp.data.id
@@ -884,7 +899,7 @@ exports.sendText = async (req, res) => {
 
             if (insertWhatsapp.total_data > 0) {
                 await ticketMediasModel.insertData({
-                    ticket_id: tickets[0].data.id,
+                    ticket_id: tickets.data[0].id,
                     media_id: 4,
                     direction_id: 2,
                     record_id: insertWhatsapp.data.id

@@ -14,6 +14,16 @@ exports.isPlainObject = (value) => {
     return Object.prototype.toString.call(value) === '[object Object]';
 };
 
+exports.isValidUrl = (str) => {
+    try {
+        new URL(str);
+
+        return true;
+    } catch (_err) {
+        return false;
+    }
+};
+
 exports.isJson = (value) => {
     try {
         let result = typeof value !== 'string' ? JSON.stringify(value) : value;
