@@ -12,7 +12,7 @@ exports.getAll = async (conditions) => {
         }
 
         delete conditions.except_ticket_status_id;
-	}
+    }
 
     return await dbQueryHelper.getAll({
         table,
@@ -33,7 +33,7 @@ exports.getDetail = async (conditions) => {
         }
 
         delete conditions.except_ticket_status_id;
-	}
+    }
 
     return await dbQueryHelper.getDetail({
         table,

@@ -78,6 +78,7 @@ const createWinstonLogger = (type = 'success') => {
             winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
             winston.format.printf((info) => {
                 let logData = {
+                    status: type,
                     from: info.from,
                     message: info.message
                 };
@@ -86,7 +87,7 @@ const createWinstonLogger = (type = 'success') => {
                     logData.result = info.result;
                 }
 
-                return `${info.timestamp} ${JSON.stringify(logData)}`
+                return `${info.timestamp} ${JSON.stringify(logData)}`;
             })
         ),
         transports: [
