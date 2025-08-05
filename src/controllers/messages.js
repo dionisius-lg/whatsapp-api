@@ -90,7 +90,7 @@ exports.sendContact = async (req, res) => {
             wa_message_id
         });
 
-        const tickets = ticketsModel.getAll({
+        const tickets = await ticketsModel.getAll({
             contact: wa_id,
             media_id: 4,
             limit: 1,
@@ -199,7 +199,7 @@ exports.sendLocation = async (req, res) => {
             wa_message_id
         });
 
-        const tickets = ticketsModel.getAll({
+        const tickets = await ticketsModel.getAll({
             contact: wa_id,
             media_id: 4,
             limit: 1,
@@ -300,7 +300,7 @@ exports.sendMedia = async (req, res) => {
             wa_message_id
         });
 
-        const tickets = ticketsModel.getAll({
+        const tickets = await ticketsModel.getAll({
             contact: wa_id,
             media_id: 4,
             limit: 1,
@@ -434,7 +434,7 @@ exports.sendReplyButton = async (req, res) => {
             wa_message_id
         });
 
-        const tickets = ticketsModel.getAll({
+        const tickets = await ticketsModel.getAll({
             contact: wa_id,
             media_id: 4,
             limit: 1,
@@ -546,7 +546,7 @@ exports.sendReplyList = async (req, res) => {
             wa_message_id
         });
 
-        const tickets = ticketsModel.getAll({
+        const tickets = await ticketsModel.getAll({
             contact: wa_id,
             media_id: 4,
             limit: 1,
@@ -869,7 +869,7 @@ exports.sendText = async (req, res) => {
             wa_message_id
         });
 
-        const tickets = ticketsModel.getAll({
+        const tickets = await ticketsModel.getAll({
             contact: wa_id,
             media_id: 4,
             limit: 1,
