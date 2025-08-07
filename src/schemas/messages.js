@@ -114,6 +114,7 @@ const schema = {
             button: joiExtended.string().min(1).max(20).required(),
             sections: joiExtended.array().length(1).items(
                 joiExtended.object().keys({
+                    title: joiExtended.any().strip(),
                     rows: joiExtended.array().min(1).max(10).items(
                         joiExtended.object().keys({
                             id: joiExtended.string().min(1).max(200).required(),
