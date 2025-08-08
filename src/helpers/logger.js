@@ -133,12 +133,6 @@ exports.access = (app) => {
         return dateFormat(new Date(), 'yyyy-mm-dd HH:MM:ss');
     });
 
-    morgan.token('date', function() {
-		let p = new Date().toString().replace(/[A-Z]{3}\+/, '+').split(/ /)
-
-		return `${p[2]}/${p[1]}/${p[3]}:${p[4]} ${p[5]}`
-	})
-
     morgan.token('secret', (req) => {
         return req.headers && req.headers['x-api-key'];
     });
