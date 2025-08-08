@@ -54,29 +54,29 @@ let isResendFailedMesssageNotif = false;
 let isUpdateTemplateStatus = false;
 
 if (schedule.service === 1) {
-    cron.schedule(schedule.cron_resend_failed_inbound, async () => {
-        if (isResendFailedMesssageInbound) {
-            console.log('[schedule-task] resend failed message inbound to webhook is still running...');
+    // cron.schedule(schedule.cron_resend_failed_inbound, async () => {
+    //     if (isResendFailedMesssageInbound) {
+    //         console.log('[schedule-task] resend failed message inbound to webhook is still running...');
 
-            return false;
-        }
+    //         return false;
+    //     }
 
-        isResendFailedMesssageInbound = true;
-        await scheduleTask.resendFailedMesssageInbound();
-        isResendFailedMesssageInbound = false;
-    });
+    //     isResendFailedMesssageInbound = true;
+    //     await scheduleTask.resendFailedMesssageInbound();
+    //     isResendFailedMesssageInbound = false;
+    // });
 
-    cron.schedule(schedule.cron_resend_failed_notification, async () => {
-        if (isResendFailedMesssageNotif) {
-            console.log('[schedule-task] resend failed message notification to webhook is still running...');
+    // cron.schedule(schedule.cron_resend_failed_notification, async () => {
+    //     if (isResendFailedMesssageNotif) {
+    //         console.log('[schedule-task] resend failed message notification to webhook is still running...');
 
-            return false;
-        }
+    //         return false;
+    //     }
 
-        isResendFailedMesssageNotif = true;
-        await scheduleTask.resendFailedMesssageNotif();
-        isResendFailedMesssageNotif = false;
-    });
+    //     isResendFailedMesssageNotif = true;
+    //     await scheduleTask.resendFailedMesssageNotif();
+    //     isResendFailedMesssageNotif = false;
+    // });
 
     cron.schedule(schedule.cron_update_template_status, async () => {
         if (isUpdateTemplateStatus) {
