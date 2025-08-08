@@ -10,74 +10,74 @@ const messagesModel = require('./../models/messages');
  * Resend Failed Message Inbound to Webhook Client
  */
 exports.resendFailedMesssageInbound = async () => {
-    const messages = await messagesModel.getAll({ sent: 'NULL', direction_id: 1 });
-    const appClients = await appClientsModel.getAll({ is_active: 1 });
+    // const messages = await messagesModel.getAll({ sent: 'NULL', direction_id: 1 });
+    // const appClients = await appClientsModel.getAll({ is_active: 1 });
 
-    // check messages & app client data from database
-    if (messages.total_data > 0 && appClients.total_data > 0) {
-        // loop row message data
-        for (let i in messages?.data) {
-            let { id, content, sent_attempt } = messages.data[i];
+    // // check messages & app client data from database
+    // if (messages.total_data > 0 && appClients.total_data > 0) {
+    //     // loop row message data
+    //     for (let i in messages?.data) {
+    //         let { id, content, sent_attempt } = messages.data[i];
 
-            // we try to resend up to 3x include first try send, so we check sent attempt first
-            if (sent_attempt >= 3) {
-                continue;
-            }
+    //         // we try to resend up to 3x include first try send, so we check sent attempt first
+    //         if (sent_attempt >= 3) {
+    //             continue;
+    //         }
 
-            let result = { success: 0, error: 0 };
-            let messageData = { status_id: 5, sent_attempt: parseInt(sent_attempt) + 1 };
-            let send = await webhookApi.send({ clients: appClients.data, body: content });
+    //         let result = { success: 0, error: 0 };
+    //         let messageData = { status_id: 5, sent_attempt: parseInt(sent_attempt) + 1 };
+    //         let send = await webhookApi.send({ clients: appClients.data, body: content });
 
-            if (send.success > 0) {
-                messageData.status_id = 1;
-                messageData.sent = dateFormat(new Date(), 'yyyy-mm-dd HH:MM:ss');
-            }
+    //         if (send.success > 0) {
+    //             messageData.status_id = 1;
+    //             messageData.sent = dateFormat(new Date(), 'yyyy-mm-dd HH:MM:ss');
+    //         }
 
-            await messagesModel.updateData(messageData, { id });
+    //         await messagesModel.updateData(messageData, { id });
 
-            result.success += send.success;
-            result.error += send.error;
+    //         result.success += send.success;
+    //         result.error += send.error;
 
-            console.log(`[schedule-task] resend failed message inbound to webhook done. ID: ${id}. Success: ${result.success}. Error: ${result.error}`);
-        }
-    }
+    //         console.log(`[schedule-task] resend failed message inbound to webhook done. ID: ${id}. Success: ${result.success}. Error: ${result.error}`);
+    //     }
+    // }
 };
 
 /**
  * Resend Failed Message Notification to Webhook Client
  */
 exports.resendFailedMesssageNotif = async () => {
-    const messageNotifications = await messageNotificationsModel.getAll({ status_id: 5, sent: 'NULL' });
-    const appClients = await appClientsModel.getAll({ is_active: 1 });
+    // const messageNotifications = await messageNotificationsModel.getAll({ status_id: 5, sent: 'NULL' });
+    // const appClients = await appClientsModel.getAll({ is_active: 1 });
 
-    // check message notifications & app client data from database
-    if (messageNotifications.total_data > 0 && appClients.total_data > 0) {
-        // loop row message notifications data
-        for (let i in messageNotifications?.data) {
-            let { id, content, sent_attempt } = messageNotifications.data[i];
+    // // check message notifications & app client data from database
+    // if (messageNotifications.total_data > 0 && appClients.total_data > 0) {
+    //     // loop row message notifications data
+    //     for (let i in messageNotifications?.data) {
+    //         let { id, content, sent_attempt } = messageNotifications.data[i];
 
-            // we try to resend up to 3x include first try send, so we check sent attempt first
-            if (sent_attempt >= 3) {
-                continue;
-            }
+    //         // we try to resend up to 3x include first try send, so we check sent attempt first
+    //         if (sent_attempt >= 3) {
+    //             continue;
+    //         }
 
-            let result = { success: 0, error: 0 };
-            let messageNotificationData = { status_id: 5, sent_attempt: parseInt(sent_attempt) + 1 };
-            let send = await webhookApi.send({ clients: appClients.data, body: content });
+    //         let result = { success: 0, error: 0 };
+    //         let messageNotificationData = { status_id: 5, sent_attempt: parseInt(sent_attempt) + 1 };
+    //         let send = await webhookApi.send({ clients: appClients.data, body: content });
 
-            if (send.success > 0) {
-                messageNotificationData.status_id = 1;
-                messageNotificationData.sent = dateFormat(new Date(), 'yyyy-mm-dd HH:MM:ss');
-            }
+    //         if (send.success > 0) {
+    //             messageNotificationData.status_id = 1;
+    //             messageNotificationData.sent = dateFormat(new Date(), 'yyyy-mm-dd HH:MM:ss');
+    //         }
 
-            await messageNotificationsModel.updateData(messageNotificationData, { id });
+    //         await messageNotificationsModel.updateData(messageNotificationData, { id });
 
-            result.success += send.success;
-            result.error += send.error;
+    //         result.success += send.success;
+    //         result.error += send.error;
 
-            console.log(`[schedule-task] resend failed message notification to webhook done. ID: ${id}. Success: ${result.success}. Error: ${result.error}`);
-        }
-    }
+    //         console.log(`[schedule-task] resend failed message notification to webhook done. ID: ${id}. Success: ${result.success}. Error: ${result.error}`);
+    //     }
+    // }
 };
 
 /**
